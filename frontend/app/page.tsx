@@ -1,16 +1,27 @@
-// Página raiz — redirecionará para o layout principal na etapa 6
+import { TopNav } from "@/components/layout/TopNav";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
+import { RightPanel } from "@/components/layout/RightPanel";
+import { FeaturedCarousel } from "@/components/games/FeaturedCarousel";
+import { GameList } from "@/components/games/GameList";
+
 export default function HomePage() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-brand-primary">Oraculous Bet</h1>
-        <p className="text-text-secondary">Plataforma de palpites com IA — em construção</p>
-        <div className="flex gap-2 justify-center">
-          <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-          <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-          <div className="w-2 h-2 rounded-full bg-brand-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-        </div>
+    <div className="flex flex-col min-h-screen">
+      <TopNav />
+
+      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
+        <Sidebar />
+
+        <main className="flex-1 overflow-y-auto">
+          <FeaturedCarousel />
+          <GameList />
+        </main>
+
+        <RightPanel />
       </div>
+
+      <MobileNav />
     </div>
   );
 }
