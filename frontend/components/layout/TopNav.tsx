@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -16,12 +17,15 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-50 bg-bg-header border-b border-border-subtle h-14 flex items-center px-4 gap-4">
-      <Link href="/" className="flex items-center gap-2 shrink-0">
-        <span className="text-brand-primary text-xl leading-none">⚡</span>
-        <span className="font-bold text-sm">
-          <span className="text-white">Oraculous</span>
-          <span className="text-brand-primary">Bet</span>
-        </span>
+      <Link href="/" className="shrink-0">
+        <Image
+          src="/logo.svg"
+          alt="Royaltips"
+          width={130}
+          height={34}
+          priority
+          className="object-contain"
+        />
       </Link>
 
       <nav className="hidden md:flex items-center gap-0.5 flex-1">

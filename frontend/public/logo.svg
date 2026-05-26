@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 48" width="210" height="48">
+  <!-- Crown: 3 rounded arches filled -->
+  <path
+    fill="#f5821f"
+    d="M 5 44 L 5 30 Q 16 8, 28 28 Q 40 4, 52 28 Q 64 8, 75 30 L 75 44 Z"
+  />
+  <!-- royaltips -->
+  <text
+    x="88"
+    y="36"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="27"
+    font-weight="400"
+    fill="#f5821f"
+  >royaltips</text>
+</svg>
