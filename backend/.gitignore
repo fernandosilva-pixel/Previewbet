@@ -1,0 +1,23 @@
+# Ambiente virtual
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Variáveis de ambiente (nunca commitar)
+.env
+
+# Mypy / pytest
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/
+*.egg-info/

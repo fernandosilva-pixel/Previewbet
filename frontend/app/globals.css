@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border-subtle;
+  }
+
+  body {
+    @apply bg-bg-base text-text-primary font-sans antialiased;
+  }
+
+  /* Scrollbar invisível para carrosséis e abas */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Skeleton shimmer base */
+  .skeleton {
+    @apply bg-bg-card rounded animate-shimmer;
+    background-image: linear-gradient(
+      90deg,
+      theme(colors.bg.card) 0%,
+      theme(colors.bg.card-hover) 50%,
+      theme(colors.bg.card) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Paywall blur */
+  .paywall-blur {
+    @apply blur-sm select-none pointer-events-none;
+  }
+}
