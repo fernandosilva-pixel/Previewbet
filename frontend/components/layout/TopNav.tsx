@@ -19,7 +19,7 @@ export function TopNav() {
     <header className="sticky top-0 z-50 bg-bg-header border-b border-border-subtle h-14 flex items-center px-4 gap-4">
       <Link href="/" className="shrink-0">
         <Image
-          src="/logo.png"
+          src="/logo-v2.png"
           alt="Royaltips"
           width={180}
           height={46}
