@@ -27,52 +27,114 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col w-[220px] shrink-0 bg-bg-sidebar border-r border-border-subtle overflow-y-auto">
-      <div className="p-3 space-y-0.5">
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors",
-              pathname === item.href
-                ? "bg-bg-card text-white font-medium"
-                : "text-text-secondary hover:text-white hover:bg-bg-card/50"
-            )}
-          >
-            <span className="text-base">{item.icon}</span>
-            <span className="flex-1">{item.label}</span>
-            {item.badge && (
-              <span className="text-[9px] bg-live-red text-white px-1.5 py-0.5 rounded font-bold tracking-wide">
-                {item.badge}
-              </span>
-            )}
-          </Link>
-        ))}
+    <aside
+      className="hidden md:flex flex-col w-[230px] shrink-0 overflow-y-auto glass border-r-0"
+      style={{
+        background: "linear-gradient(180deg, rgba(15,19,32,0.8) 0%, rgba(12,16,28,0.9) 100%)",
+        backdropFilter: "blur(28px) saturate(180%)",
+        WebkitBackdropFilter: "blur(28px) saturate(180%)",
+        borderRight: "1px solid rgba(255,255,255,0.07)",
+        boxShadow: "4px 0 24px rgba(0,0,0,0.4)",
+      }}
+    >
+      {/* Navigation */}
+      <div className="p-3 space-y-1.5 mt-1">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.15em] font-semibold px-3 mb-3 mt-1">
+          Menu
+        </p>
+        {NAV_ITEMS.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
+                active
+                  ? "nav-item-emboss-brand text-white font-semibold"
+                  : "text-text-secondary hover:text-white nav-item-emboss"
+              )}
+            >
+              <span className="text-base leading-none">{item.icon}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.badge && (
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-wide text-white"
+                  style={{
+                    background: "rgba(229, 62, 62, 0.9)",
+                    boxShadow: "0 2px 8px rgba(229,62,62,0.5)",
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </div>
 
-      <div className="mt-2 px-3">
-        <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-2 px-3">
+      {/* Divider */}
+      <div
+        className="mx-4 my-2"
+        style={{
+          height: "1px",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+        }}
+      />
+
+      {/* Leagues */}
+      <div className="px-3 pb-3">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.15em] font-semibold px-3 mb-2">
           Ligas
         </p>
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           {LEAGUES.map((l) => (
             <button
               key={l.name}
-              className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-sm text-text-secondary hover:text-white hover:bg-bg-card/50 transition-colors text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-text-secondary hover:text-white transition-all duration-200 nav-item-emboss text-left"
             >
-              <span className="text-base">{l.flag}</span>
-              <span className="truncate text-xs">{l.name}</span>
+              <span className="text-sm">{l.flag}</span>
+              <span className="truncate">{l.name}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="mt-auto p-4 border-t border-border-subtle">
-        <div className="bg-bg-card rounded-lg p-3 text-center">
-          <p className="text-text-muted text-[10px] uppercase tracking-wide mb-1">Acurácia Geral</p>
-          <p className="text-2xl font-bold text-success-green">69.8%</p>
-          <p className="text-text-muted text-[10px] mt-0.5">248 palpites</p>
+      {/* Divider */}
+      <div
+        className="mx-4 my-1"
+        style={{
+          height: "1px",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+        }}
+      />
+
+      {/* Accuracy badge */}
+      <div className="p-4 mt-auto">
+        <div
+          className="rounded-2xl p-4 text-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow:
+              "inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -1px 1px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4)",
+          }}
+        >
+          <p className="text-[10px] text-text-muted uppercase tracking-widest mb-1.5">
+            Acurácia Geral
+          </p>
+          <p
+            className="text-3xl font-black"
+            style={{
+              background: "linear-gradient(135deg, #4ade80, #22c55e)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0 0 8px rgba(74,222,128,0.4))",
+            }}
+          >
+            69.8%
+          </p>
+          <p className="text-[10px] text-text-muted mt-1">248 palpites</p>
         </div>
       </div>
     </aside>

@@ -16,7 +16,13 @@ export function TopNav() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 bg-bg-header border-b border-border-subtle h-14 flex items-center px-4 gap-4">
+    <header
+      className="sticky top-0 z-50 h-14 flex items-center px-5 gap-5 glass"
+      style={{
+        boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06)",
+      }}
+    >
+      {/* Logo */}
       <Link href="/" className="shrink-0">
         <Image
           src="/logo-v2.png"
@@ -28,16 +34,17 @@ export function TopNav() {
         />
       </Link>
 
-      <nav className="hidden md:flex items-center gap-0.5 flex-1">
+      {/* Nav links */}
+      <nav className="hidden md:flex items-center gap-1 flex-1">
         {NAV_LINKS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             className={cn(
-              "px-3 py-1.5 rounded text-sm font-medium transition-colors",
+              "relative px-4 py-1.5 rounded-xl text-sm font-medium transition-all duration-200",
               pathname === link.href
-                ? "text-white bg-bg-card"
-                : "text-text-secondary hover:text-white hover:bg-bg-card/50"
+                ? "nav-item-emboss text-white"
+                : "text-text-secondary hover:text-white hover:bg-white/5 rounded-xl"
             )}
           >
             {link.label}
@@ -48,16 +55,17 @@ export function TopNav() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-2 ml-auto">
+      {/* Actions */}
+      <div className="flex items-center gap-2.5 ml-auto">
         <Link
           href="/login"
-          className="text-text-secondary hover:text-white text-sm font-medium transition-colors px-3 py-1.5 hidden sm:block"
+          className="hidden sm:block text-text-secondary hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-xl hover:bg-white/5"
         >
           Entrar
         </Link>
         <Link
           href="/assinatura"
-          className="bg-brand-primary hover:bg-brand-hover text-white text-sm font-bold px-4 py-1.5 rounded transition-colors"
+          className="relative text-white text-sm font-bold px-5 py-2 rounded-xl transition-all duration-200 nav-item-emboss-brand"
         >
           Assinar
         </Link>

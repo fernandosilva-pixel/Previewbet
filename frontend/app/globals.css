@@ -4,7 +4,10 @@
 
 @layer base {
   :root {
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+    --glass-bg: rgba(18, 22, 36, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-highlight: rgba(255, 255, 255, 0.12);
   }
 
   * {
@@ -13,9 +16,11 @@
 
   body {
     @apply bg-bg-base text-text-primary font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -20%, rgba(224, 82, 42, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(30, 42, 80, 0.4) 0%, transparent 60%);
   }
 
-  /* Scrollbar invisível para carrosséis e abas */
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -26,9 +31,58 @@
 }
 
 @layer components {
-  /* Skeleton shimmer base */
+  /* ---- Liquid Glass ---- */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+  }
+
+  /* ---- Emboss (alto relevo) ---- */
+  .nav-item-emboss {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.04) 60%,
+      rgba(0, 0, 0, 0.08) 100%
+    );
+    box-shadow:
+      inset 0 1px 2px rgba(255, 255, 255, 0.18),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.45),
+      0 6px 20px rgba(0, 0, 0, 0.55),
+      0 1px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom-color: rgba(0, 0, 0, 0.25);
+  }
+
+  .nav-item-emboss-brand {
+    background: linear-gradient(
+      145deg,
+      rgba(224, 82, 42, 0.35) 0%,
+      rgba(224, 82, 42, 0.15) 60%,
+      rgba(180, 50, 20, 0.2) 100%
+    );
+    box-shadow:
+      inset 0 1px 2px rgba(255, 180, 120, 0.25),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+      0 6px 24px rgba(224, 82, 42, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(224, 82, 42, 0.35);
+    border-bottom-color: rgba(150, 30, 10, 0.3);
+  }
+
+  /* ---- Skeleton shimmer ---- */
   .skeleton {
-    @apply bg-bg-card rounded animate-shimmer;
+    @apply rounded-xl animate-shimmer;
     background-image: linear-gradient(
       90deg,
       theme(colors.bg.card) 0%,
@@ -38,7 +92,7 @@
     background-size: 200% 100%;
   }
 
-  /* Paywall blur */
+  /* ---- Paywall blur ---- */
   .paywall-blur {
     @apply blur-sm select-none pointer-events-none;
   }
