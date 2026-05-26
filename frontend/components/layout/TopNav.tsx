@@ -21,8 +21,8 @@ export function TopNav() {
         <Image
           src="/logo.png"
           alt="Royaltips"
-          width={130}
-          height={34}
+          width={180}
+          height={46}
           priority
           className="object-contain"
         />
