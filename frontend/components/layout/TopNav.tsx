@@ -17,9 +17,11 @@ export function TopNav() {
 
   return (
     <header
-      className="sticky top-0 z-50 h-14 flex items-center px-5 gap-5 glass"
+      className="sticky top-0 z-50 h-14 flex items-center px-5 gap-5"
       style={{
-        boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06)",
+        background: "#0D121F",
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
+        boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04)",
       }}
     >
       {/* Logo */}
