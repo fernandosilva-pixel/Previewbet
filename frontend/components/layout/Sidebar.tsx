@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/", label: "Jogos de Hoje", icon: "⚽" },
   { href: "/ao-vivo", label: "Ao Vivo", icon: "🔴", badge: "AO VIVO" },
-  { href: "/bingos", label: "Bingos IA", icon: "🎯" },
+  { href: "/carteira", label: "Carteira", icon: "💰" },
   { href: "/historico", label: "Histórico", icon: "📊" },
   { href: "/assinatura", label: "Assinar", icon: "⭐" },
 ];
@@ -97,6 +97,68 @@ export function Sidebar() {
               <span className="truncate">{l.name}</span>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div
+        className="mx-4 my-2"
+        style={{
+          height: "1px",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
+        }}
+      />
+
+      {/* Indicação */}
+      <div className="px-3 pb-3">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.15em] font-semibold px-3 mb-2">
+          Indicação
+        </p>
+        <Link
+          href="/indicacao"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 mb-1.5",
+            pathname === "/indicacao"
+              ? "nav-item-emboss-brand text-white font-semibold"
+              : "text-text-secondary hover:text-white nav-item-emboss"
+          )}
+        >
+          <span className="text-base leading-none">🔗</span>
+          <span className="flex-1">Meu Link</span>
+        </Link>
+        <Link
+          href="/indicacao/ganhos"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
+            pathname === "/indicacao/ganhos"
+              ? "nav-item-emboss-brand text-white font-semibold"
+              : "text-text-secondary hover:text-white nav-item-emboss"
+          )}
+        >
+          <span className="text-base leading-none">💸</span>
+          <span className="flex-1">Ganhos</span>
+        </Link>
+
+        {/* Banner de incentivo */}
+        <div
+          className="mt-3 rounded-2xl p-3 text-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(224,82,42,0.15) 0%, rgba(224,82,42,0.05) 100%)",
+            border: "1px solid rgba(224,82,42,0.2)",
+            boxShadow: "inset 0 1px 1px rgba(255,180,100,0.1), 0 4px 12px rgba(0,0,0,0.3)",
+          }}
+        >
+          <p className="text-[18px] mb-1">👑</p>
+          <p className="text-[11px] text-white font-semibold mb-0.5">Ganhe por indicar</p>
+          <p className="text-[10px] text-text-muted leading-snug">
+            Compartilhe seu link e receba comissão por cada assinante.
+          </p>
+          <Link
+            href="/indicacao"
+            className="inline-block mt-2 text-[10px] font-bold text-brand-primary hover:underline"
+          >
+            Começar agora →
+          </Link>
         </div>
       </div>
 
