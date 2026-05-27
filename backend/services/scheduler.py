@@ -64,10 +64,10 @@ def start() -> None:
         coalesce=True,
     )
 
-    # scores do dia a cada 3 minutos
+    # scores do dia a cada 10 minutos (Railway free tier tem 512MB — não sobrecarregar)
     _scheduler.add_job(
         _job_today,
-        trigger=IntervalTrigger(minutes=3),
+        trigger=IntervalTrigger(minutes=10),
         id="today",
         replace_existing=True,
         max_instances=1,
@@ -76,7 +76,7 @@ def start() -> None:
 
     _scheduler.start()
     _started = True
-    print("[scheduler] Iniciado (fixtures/3h + today/3min, startup sync em 30s)", flush=True)
+    print("[scheduler] Iniciado (fixtures/3h + today/10min, startup sync em 30s)", flush=True)
 
     # sync inicial com delay — não trava o boot do uvicorn
     asyncio.create_task(_delayed_startup_sync())
