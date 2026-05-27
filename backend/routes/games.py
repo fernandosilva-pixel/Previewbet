@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from database import supabase
 from mock_data import MOCK_GAMES, MOCK_LOGO_MAP
+from services.data_collector import LEAGUE_SHORT as _LEAGUE_SHORT
 
 router = APIRouter()
 
@@ -11,28 +12,12 @@ router = APIRouter()
 
 # status do banco → status ESPN esperado pelo frontend
 _DB_TO_ESPN: dict[str, str] = {
-    "scheduled":  "STATUS_SCHEDULED",
+    "scheduled":   "STATUS_SCHEDULED",
     "in_progress": "STATUS_IN_PROGRESS",
-    "final":      "STATUS_FINAL",
-    "postponed":  "STATUS_POSTPONED",
-    "cancelled":  "STATUS_CANCELLED",
-    "suspended":  "STATUS_SUSPENDED",
-}
-
-# source (espn league id) → short name
-_LEAGUE_SHORT: dict[str, str] = {
-    "bra.1":                 "SÉRIE A",
-    "bra.2":                 "SÉRIE B",
-    "conmebol.libertadores": "LIBERTAD.",
-    "conmebol.sudamericana": "SULAMER.",
-    "eng.1":                 "PREMIER",
-    "uefa.champions":        "UCL",
-    "esp.1":                 "LA LIGA",
-    "ger.1":                 "BUNDESL.",
-    "ita.1":                 "SERIE A",
-    "fra.1":                 "LIGUE 1",
-    "uefa.europa":           "UEL",
-    "eng.fa":                "FA CUP",
+    "final":       "STATUS_FINAL",
+    "postponed":   "STATUS_POSTPONED",
+    "cancelled":   "STATUS_CANCELLED",
+    "suspended":   "STATUS_SUSPENDED",
 }
 
 
