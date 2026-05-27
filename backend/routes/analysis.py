@@ -6,7 +6,7 @@ router = APIRouter()
 
 
 @router.get("/analysis/{game_id}", response_model=dict)
-async def get_analysis(game_id: int):
+async def get_analysis(game_id: str):
     analysis = MOCK_ANALYSES.get(game_id)
     if not analysis:
         raise HTTPException(status_code=404, detail="Análise não encontrada para este jogo")
