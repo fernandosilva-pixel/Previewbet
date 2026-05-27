@@ -24,6 +24,14 @@ except Exception as _import_err:
     print(f"[startup] ERRO ao importar rotas: {_import_err}", flush=True)
     raise
 
+try:
+    from services import scheduler as _scheduler_module
+    _scheduler_available = True
+    print("[startup] Scheduler disponível", flush=True)
+except Exception as _sched_err:
+    _scheduler_available = False
+    print(f"[startup] Scheduler indisponível: {_sched_err}", flush=True)
+
 
 # ---------------------------------------------------------------------------
 # WebSocket connection manager
@@ -58,9 +66,13 @@ manager = ConnectionManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[lifespan] Startup OK", flush=True)
+    print("[lifespan] Startup", flush=True)
+    if _scheduler_available:
+        _scheduler_module.start()
     yield
     print("[lifespan] Shutdown", flush=True)
+    if _scheduler_available:
+        _scheduler_module.stop()
 
 
 app = FastAPI(
