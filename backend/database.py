@@ -2,11 +2,13 @@
 Dois clientes de banco de dados:
 - Supabase client: operações CRUD simples, Auth e Realtime
 - SQLAlchemy async: queries complexas com JOINs e agregações
+
+Todos os clientes são opcionais — o backend inicia mesmo sem env vars configuradas
+(rotas que usam mock data continuam funcionando; rotas que precisam do banco falham
+apenas quando chamadas).
 """
 
-from supabase import create_client, Client
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -28,43 +30,61 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # ---------------------------------------------------------------------------
-# Supabase client (service role para operações server-side)
+# Supabase client — criado apenas se as env vars estiverem configuradas
 # ---------------------------------------------------------------------------
-supabase: Client = create_client(
-    settings.supabase_url,
-    settings.supabase_service_role_key,
-)
 
-# Cliente anon para operações que respeitam RLS (como verificar sessão de usuário)
-supabase_anon: Client = create_client(
-    settings.supabase_url,
-    settings.supabase_anon_key,
-)
+supabase = None
+supabase_anon = None
+
+if settings.supabase_url and settings.supabase_service_role_key:
+    try:
+        from supabase import create_client
+        supabase = create_client(settings.supabase_url, settings.supabase_service_role_key)
+        supabase_anon = create_client(settings.supabase_url, settings.supabase_anon_key)
+    except Exception as e:
+        print(f"[database] Supabase não inicializado: {e}")
 
 # ---------------------------------------------------------------------------
-# SQLAlchemy async engine (queries complexas com JOINs e agregações)
+# SQLAlchemy async engine — criado apenas se DATABASE_URL estiver configurada
 # ---------------------------------------------------------------------------
-engine = create_async_engine(
-    settings.database_url,
-    echo=False,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,
-)
 
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+engine = None
+AsyncSessionLocal = None
+
+if settings.database_url:
+    try:
+        from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+        engine = create_async_engine(
+            settings.database_url,
+            echo=False,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+        )
+        AsyncSessionLocal = async_sessionmaker(
+            engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+        )
+    except Exception as e:
+        print(f"[database] SQLAlchemy não inicializado: {e}")
 
 
-class Base(DeclarativeBase):
+class Base:
+    pass
+
+try:
+    from sqlalchemy.orm import DeclarativeBase
+    class Base(DeclarativeBase):  # type: ignore
+        pass
+except Exception:
     pass
 
 
-async def get_db() -> AsyncSession:
+async def get_db():
     """Dependency FastAPI para injetar sessão do banco."""
+    if AsyncSessionLocal is None:
+        raise RuntimeError("DATABASE_URL não configurada")
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -77,6 +97,7 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db() -> None:
-    """Cria tabelas que ainda não existem (usado em dev; em prod use Supabase SQL Editor)."""
+    if engine is None:
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
