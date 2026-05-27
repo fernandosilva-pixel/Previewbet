@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 const MOBILE_NAV = [
   { href: "/", label: "Jogos", icon: "⚽" },
   { href: "/ao-vivo", label: "Ao Vivo", icon: "🔴" },
-  { href: "/bingos", label: "Bingos", icon: "🎯" },
   { href: "/historico", label: "Histórico", icon: "📊" },
   { href: "/assinatura", label: "Assinar", icon: "⭐" },
 ];

@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/", label: "Jogos" },
   { href: "/ao-vivo", label: "Ao Vivo" },
-  { href: "/bingos", label: "Bingos" },
   { href: "/historico", label: "Histórico" },
 ];
 
