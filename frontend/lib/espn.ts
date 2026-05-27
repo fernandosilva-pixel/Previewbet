@@ -99,15 +99,28 @@ export const LEAGUE_SHORT: Record<string, string> = Object.fromEntries(
 );
 
 const STATUS_MAP: Record<string, string> = {
-  STATUS_SCHEDULED:   "scheduled",
-  STATUS_IN_PROGRESS: "in_progress",
-  STATUS_HALFTIME:    "in_progress",
-  STATUS_FINAL:       "final",
-  STATUS_FULL_TIME:   "final",
-  STATUS_POSTPONED:   "postponed",
-  STATUS_CANCELLED:   "cancelled",
-  STATUS_SUSPENDED:   "suspended",
-  STATUS_DELAYED:     "scheduled",
+  // Agendado
+  STATUS_SCHEDULED:     "scheduled",
+  STATUS_DELAYED:       "scheduled",
+  STATUS_RAIN_DELAY:    "scheduled",
+  // Em andamento — ESPN usa vários nomes granulares
+  STATUS_IN_PROGRESS:   "in_progress",
+  STATUS_FIRST_HALF:    "in_progress",
+  STATUS_SECOND_HALF:   "in_progress",
+  STATUS_HALFTIME:      "in_progress",
+  STATUS_EXTRA_TIME:    "in_progress",
+  STATUS_ET_HALFTIME:   "in_progress",
+  STATUS_PENALTIES:     "in_progress",
+  STATUS_OVERTIME:      "in_progress",
+  // Encerrado
+  STATUS_FINAL:         "final",
+  STATUS_FULL_TIME:     "final",
+  STATUS_FULL_PEN:      "final",
+  STATUS_ABANDONED:     "final",
+  // Outros
+  STATUS_POSTPONED:     "postponed",
+  STATUS_CANCELLED:     "cancelled",
+  STATUS_SUSPENDED:     "suspended",
 };
 
 const DB_TO_ESPN: Record<string, string> = {
