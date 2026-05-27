@@ -4,14 +4,17 @@
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { fetchAllLeagues, rowToGame } from "@/lib/espn";
 
-function getSupabase() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabase = SupabaseClient<any, any, any>;
+
+function getSupabase(): AnySupabase | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key);
+  return createClient(url, key) as AnySupabase;
 }
 
 function todayUTC() {
@@ -51,7 +54,6 @@ export async function GET() {
 
     if (error) throw error;
 
-    // Se não há dados ou o último update tem mais de 15 minutos, sincroniza
     const lastUpdate = existing?.[0]?.updated_at
       ? new Date(existing[0].updated_at).getTime()
       : 0;
@@ -85,12 +87,13 @@ export async function GET() {
   }
 }
 
-async function syncDays(supabase: ReturnType<typeof createClient>, dates: string[]) {
+async function syncDays(supabase: AnySupabase, dates: string[]) {
   for (const date of dates) {
     try {
       const rows = await fetchAllLeagues(date);
       if (rows.length > 0) {
-        await supabase.from("games").upsert(rows, { onConflict: "external_id" });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await supabase.from("games").upsert(rows as any[], { onConflict: "external_id" });
         console.log(`[sync] ${date}: ${rows.length} jogos`);
       }
     } catch (err) {

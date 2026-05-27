@@ -46,7 +46,8 @@ export async function fetchAnalysis(_gameId: string): Promise<Analysis> {
 }
 
 export async function fetchAnalysisSummary(): Promise<AccuracyStats> {
-  return { league: "Geral", total: 0, correct: 0, accuracy_pct: 0, by_confidence: {} };
+  const empty = { total: 0, correct: 0, pct: 0 };
+  return { league: "Geral", total: 0, correct: 0, accuracy_pct: 0, by_confidence: { ALTA: empty, MEDIA: empty, BAIXA: empty } };
 }
 
 // ---------------------------------------------------------------------------
