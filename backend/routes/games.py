@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import asyncio
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
@@ -51,7 +54,7 @@ def _row_to_game(row: dict) -> dict:
     }
 
 
-def _fetch_games_from_supabase() -> list[dict] | None:
+def _fetch_games_from_supabase() -> Optional[list]:
     """Leitura síncrona — sempre chamar via asyncio.to_thread."""
     try:
         res = (
@@ -67,7 +70,7 @@ def _fetch_games_from_supabase() -> list[dict] | None:
         return None
 
 
-def _fetch_game_from_supabase(game_id: str) -> dict | None:
+def _fetch_game_from_supabase(game_id: str) -> Optional[dict]:
     try:
         res = (
             supabase.table("games")

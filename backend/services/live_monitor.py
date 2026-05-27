@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Monitora jogos ao vivo e emite alertas via WebSocket quando
 as condições de pressão/oportunidade são atingidas.

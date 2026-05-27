@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Coleta jogos da ESPN API (não-oficial, sem chave) e faz upsert no Supabase.
 
