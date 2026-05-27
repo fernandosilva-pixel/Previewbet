@@ -1,17 +1,13 @@
 import axios from "axios";
 import type { Game, Analysis, Bingo, AccuracyStats, LiveAlert, SubscriptionPlan } from "./types";
 
-/**
- * Usa o proxy server-side do Next.js (/api/backend/**).
- * O browser chama a mesma origem → sem CORS, sem NEXT_PUBLIC_API_URL.
- * O proxy lê BACKEND_URL em runtime (server-side) e repassa para o FastAPI.
- */
+// Rotas nativas do Next.js — mesma origem, sem CORS, sem backend separado
 const api = axios.create({
-  baseURL: "/api/backend",
-  timeout: 12000,
+  baseURL: "/api",
+  timeout: 20000,
 });
 
-// Injeta token JWT do Supabase nas requisições autenticadas
+// Injeta token JWT nas requisições autenticadas
 api.interceptors.request.use(async (config) => {
   if (typeof window !== "undefined") {
     const { getSession } = await import("./supabase");
@@ -24,47 +20,41 @@ api.interceptors.request.use(async (config) => {
 });
 
 // ---------------------------------------------------------------------------
-// Games — retorna tudo de uma vez; filtro por data é feito no frontend
+// Games
 // ---------------------------------------------------------------------------
 
 export async function fetchGames(): Promise<Game[]> {
-  const { data } = await api.get<Game[]>("/api/games/");
+  const { data } = await api.get<Game[]>("/games");
   return data;
 }
 
 export async function fetchGame(id: string): Promise<Game> {
-  const { data } = await api.get<Game>(`/api/games/${id}`);
+  const { data } = await api.get<Game>(`/games/${id}`);
   return data;
 }
 
-/** Mapa de logos locais como fallback: { "Flamengo": "/static/logos/flamengo.png", ... } */
 export async function fetchLogoMap(): Promise<Record<string, string>> {
-  const { data } = await api.get<Record<string, string>>("/api/games/logos/teams");
-  return data;
+  return {}; // logos vêm direto da ESPN agora
 }
 
 // ---------------------------------------------------------------------------
-// Analysis
+// Analysis (stub — será implementado com Claude AI)
 // ---------------------------------------------------------------------------
 
-export async function fetchAnalysis(gameId: string): Promise<Analysis> {
-  const { data } = await api.get<Analysis>(`/api/analysis/${gameId}`);
-  return data;
+export async function fetchAnalysis(_gameId: string): Promise<Analysis> {
+  throw new Error("não implementado");
 }
 
 export async function fetchAnalysisSummary(): Promise<AccuracyStats> {
-  const { data } = await api.get<AccuracyStats>("/api/analysis/summary");
-  return data;
+  return { league: "Geral", total: 0, correct: 0, accuracy_pct: 0, by_confidence: {} };
 }
 
 // ---------------------------------------------------------------------------
 // Bingos
 // ---------------------------------------------------------------------------
 
-export async function fetchBingos(category?: string): Promise<Bingo[]> {
-  const params = category ? { category } : undefined;
-  const { data } = await api.get<Bingo[]>("/api/bingos", { params });
-  return data;
+export async function fetchBingos(_category?: string): Promise<Bingo[]> {
+  return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -72,13 +62,11 @@ export async function fetchBingos(category?: string): Promise<Bingo[]> {
 // ---------------------------------------------------------------------------
 
 export async function fetchAccuracy(): Promise<AccuracyStats[]> {
-  const { data } = await api.get<AccuracyStats[]>("/api/stats/accuracy");
-  return data;
+  return [];
 }
 
-export async function fetchAccuracyByLeague(league: string): Promise<AccuracyStats> {
-  const { data } = await api.get<AccuracyStats>(`/api/stats/accuracy/league/${encodeURIComponent(league)}`);
-  return data;
+export async function fetchAccuracyByLeague(_league: string): Promise<AccuracyStats> {
+  throw new Error("não implementado");
 }
 
 // ---------------------------------------------------------------------------
@@ -86,8 +74,7 @@ export async function fetchAccuracyByLeague(league: string): Promise<AccuracySta
 // ---------------------------------------------------------------------------
 
 export async function fetchActiveAlerts(): Promise<LiveAlert[]> {
-  const { data } = await api.get<LiveAlert[]>("/api/alerts/active");
-  return data;
+  return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -95,18 +82,11 @@ export async function fetchActiveAlerts(): Promise<LiveAlert[]> {
 // ---------------------------------------------------------------------------
 
 export async function fetchPlans(): Promise<SubscriptionPlan[]> {
-  const { data } = await api.get<SubscriptionPlan[]>("/api/subscription/plans");
-  return data;
+  return [];
 }
 
-export async function fetchSubscriptionStatus(): Promise<{
-  has_subscription: boolean;
-  plan_name?: string;
-  expires_at?: string;
-  permissions: Record<string, boolean>;
-}> {
-  const { data } = await api.get("/api/subscription/status");
-  return data;
+export async function fetchSubscriptionStatus() {
+  return { has_subscription: false, permissions: {} };
 }
 
 export default api;
