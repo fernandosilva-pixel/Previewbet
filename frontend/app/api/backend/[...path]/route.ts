@@ -21,7 +21,7 @@ async function proxy(
 ) {
   const path = params.path.join("/");
   const search = req.nextUrl.search ?? "";
-  const target = `${BACKEND}/api/${path}${search}`;
+  const target = `${BACKEND}/${path}${search}`;
 
   try {
     const headers: Record<string, string> = {
