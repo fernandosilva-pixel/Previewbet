@@ -1,68 +1,60 @@
 // ---------------------------------------------------------------------------
-// Enums
+// Game (ESPN real data)
 // ---------------------------------------------------------------------------
 
-export type GameStatus = "scheduled" | "live" | "finished" | "postponed";
-export type Confidence = "ALTA" | "MEDIA" | "BAIXA";
-export type Result = "Casa" | "Fora" | "Empate" | "CasaEmpate" | "ForaEmpate";
-
-// ---------------------------------------------------------------------------
-// Game
-// ---------------------------------------------------------------------------
+export type GameStatus =
+  | "STATUS_SCHEDULED"
+  | "STATUS_IN_PROGRESS"
+  | "STATUS_FINAL"
+  | "STATUS_POSTPONED";
 
 export interface Game {
-  id: number;
-  external_id: string;
+  id: string;            // ex: "e_401865466"
+  espn_id: string;
+  home: string;
+  away: string;
+  homeLogo: string;
+  awayLogo: string;
+  datetime: string;      // ISO 8601 UTC: "2026-05-27T22:00:00+00:00"
   league: string;
-  country: string;
-  home_team: string;
-  away_team: string;
-  home_logo: string;
-  away_logo: string;
-  datetime: string;
+  leagueShort: string;
+  leagueId: string;
   status: GameStatus;
-  home_score: number | null;
-  away_score: number | null;
-  clock: string | null;
-  period: number | null;
-  home_possession: number | null;
-  away_possession: number | null;
-  home_shots: number | null;
-  away_shots: number | null;
-  home_corners: number | null;
-  away_corners: number | null;
-  home_yellow_cards: number | null;
-  away_yellow_cards: number | null;
-  has_odds: boolean;
-  odds_home: number | null;
-  odds_draw: number | null;
-  odds_away: number | null;
+  isLive: boolean;
+  isFinal: boolean;
+  homeScore: number;
+  awayScore: number;
+  clock: string;         // ex: "67'" ou "0'"
+  period: number;
 }
 
 // ---------------------------------------------------------------------------
 // Analysis
 // ---------------------------------------------------------------------------
 
+export type Confidence = "ALTA" | "MEDIA" | "BAIXA";
+export type Result = "Casa" | "Fora" | "Empate" | "CasaEmpate" | "ForaEmpate";
+
 export interface Analysis {
   id: number;
-  game_id: number;
+  game_id: string;
   resultado: {
     r: Result;
     c: Confidence;
-    just: string;    // justificativa
-    ins: string;     // insight
-    fc: string;      // forma casa
-    ff: string;      // forma fora
-    fca: number;     // força casa /10
-    ffo: number;     // força fora /10
-    fav: string;     // favorito
+    just: string;
+    ins: string;
+    fc: string;
+    ff: string;
+    fca: number;
+    ffo: number;
+    fav: string;
   };
   gols: {
-    mk: string;              // mercado (ex: "Mais de 2.5")
+    mk: string;
     cf: Confidence;
-    te: string;              // total esperado
-    am: "Sim" | "Não";      // ambas marcam
-    nt: string;              // nota de análise
+    te: string;
+    am: "Sim" | "Não";
+    nt: string;
   };
   escanteios: {
     mk: string;
@@ -75,9 +67,9 @@ export interface Analysis {
     te: string;
   };
   placar: {
-    mg: number;                              // minuto de geração
+    mg: number;
     st: "Aberto" | "Fechado";
-    pls: Array<{ p: string; v: string }>;   // placar / probabilidade
+    pls: Array<{ p: string; v: string }>;
   };
   combinacoes: {
     conservador: string;
@@ -99,10 +91,7 @@ export interface BingoSelection {
   market_label: string;
   odd: number;
   confidence: Confidence;
-  sub_picks: Array<{
-    market_label: string;
-    odd: number;
-  }>;
+  sub_picks: Array<{ market_label: string; odd: number }>;
 }
 
 export interface Bingo {
@@ -174,7 +163,7 @@ export interface SubscriptionPlan {
 
 export interface LiveAlert {
   id: number;
-  game_id: number;
+  game_id: string;
   league: string;
   home: string;
   away: string;

@@ -19,21 +19,22 @@ api.interceptors.request.use(async (config) => {
 });
 
 // ---------------------------------------------------------------------------
-// Games
+// Games — retorna tudo de uma vez; filtro por data é feito no frontend
 // ---------------------------------------------------------------------------
 
-export async function fetchGames(
-  date: "hoje" | "amanha" | "encerrados" = "hoje",
-  league?: string
-): Promise<Game[]> {
-  const params: Record<string, string> = { date };
-  if (league) params.league = league;
-  const { data } = await api.get<Game[]>("/api/games", { params });
+export async function fetchGames(): Promise<Game[]> {
+  const { data } = await api.get<Game[]>("/api/games/");
   return data;
 }
 
-export async function fetchGame(id: number): Promise<Game> {
+export async function fetchGame(id: string): Promise<Game> {
   const { data } = await api.get<Game>(`/api/games/${id}`);
+  return data;
+}
+
+/** Mapa de logos locais como fallback: { "Flamengo": "/static/logos/flamengo.png", ... } */
+export async function fetchLogoMap(): Promise<Record<string, string>> {
+  const { data } = await api.get<Record<string, string>>("/api/games/logos/teams");
   return data;
 }
 
@@ -41,7 +42,7 @@ export async function fetchGame(id: number): Promise<Game> {
 // Analysis
 // ---------------------------------------------------------------------------
 
-export async function fetchAnalysis(gameId: number): Promise<Analysis> {
+export async function fetchAnalysis(gameId: string): Promise<Analysis> {
   const { data } = await api.get<Analysis>(`/api/analysis/${gameId}`);
   return data;
 }

@@ -1,42 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { GameRow } from "./GameRow";
 import { LeagueBadge } from "@/components/ui/LeagueBadge";
 import { SkeletonGameList } from "@/components/ui/SkeletonGameRow";
-import { fetchGames, fetchAnalysis } from "@/lib/api";
+import { fetchGames, fetchLogoMap, fetchAnalysis } from "@/lib/api";
+import { isGameToday, isGameTomorrow, isFinished } from "@/lib/utils";
 import type { Game, Analysis } from "@/lib/types";
 
 type DateFilter = "hoje" | "amanha" | "encerrados";
 
 interface LeagueGroup {
   league: string;
+  leagueId: string;
   games: Game[];
 }
 
 function groupByLeague(games: Game[]): LeagueGroup[] {
-  const map = new Map<string, Game[]>();
+  const map = new Map<string, LeagueGroup>();
   for (const g of games) {
-    if (!map.has(g.league)) map.set(g.league, []);
-    map.get(g.league)!.push(g);
+    const key = g.leagueId || g.league;
+    if (!map.has(key)) map.set(key, { league: g.league, leagueId: key, games: [] });
+    map.get(key)!.games.push(g);
   }
-  return Array.from(map.entries()).map(([league, games]) => ({ league, games }));
+  return Array.from(map.values());
 }
 
+const FILTER_LABELS: Record<DateFilter, string> = {
+  hoje: "Hoje",
+  amanha: "Amanhã",
+  encerrados: "Encerrados",
+};
+
 export function GameList() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [analyses, setAnalyses] = useState<Record<number, Analysis>>({});
+  const [allGames, setAllGames] = useState<Game[]>([]);
+  const [logoMap, setLogoMap] = useState<Record<string, string>>({});
+  const [analyses, setAnalyses] = useState<Record<string, Analysis>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<DateFilter>("hoje");
 
+  // Busca todos os jogos UMA vez ao montar
   useEffect(() => {
     setLoading(true);
-    fetchGames(filter)
-      .then(async (data) => {
-        setGames(data);
-        const analysisMap: Record<number, Analysis> = {};
-        await Promise.all(
-          data.slice(0, 6).map(async (g) => {
+    Promise.all([fetchGames(), fetchLogoMap().catch(() => ({}))])
+      .then(async ([games, logos]) => {
+        setAllGames(games);
+        setLogoMap(logos);
+
+        // Busca análise para os primeiros 6 jogos de hoje
+        const todayGames = games.filter((g) => isGameToday(g.datetime)).slice(0, 6);
+        const analysisMap: Record<string, Analysis> = {};
+        await Promise.allSettled(
+          todayGames.map(async (g) => {
             try {
               const a = await fetchAnalysis(g.id);
               if (a) analysisMap[g.id] = a;
@@ -45,29 +60,51 @@ export function GameList() {
         );
         setAnalyses(analysisMap);
       })
-      .catch(() => setGames([]))
+      .catch(() => {})
       .finally(() => setLoading(false));
-  }, [filter]);
+  }, []);
 
-  const groups = groupByLeague(games);
+  // Filtra no frontend sem nova requisição
+  const filtered = useMemo(() => {
+    if (filter === "hoje") return allGames.filter((g) => isGameToday(g.datetime));
+    if (filter === "amanha") return allGames.filter((g) => isGameTomorrow(g.datetime));
+    return allGames.filter((g) => isFinished(g.status));
+  }, [allGames, filter]);
+
+  // Ao vivo sempre no topo
+  const sorted = useMemo(
+    () => [...filtered].sort((a, b) => {
+      if (a.isLive && !b.isLive) return -1;
+      if (!a.isLive && b.isLive) return 1;
+      return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
+    }),
+    [filtered]
+  );
+
+  const groups = useMemo(() => groupByLeague(sorted), [sorted]);
 
   return (
     <div>
-      {/* Filtros de data */}
+      {/* Filtro de dia */}
       <div className="flex gap-1 px-4 py-3 border-b border-border-subtle">
-        {(["hoje", "amanha", "encerrados"] as DateFilter[]).map((f) => (
+        {(Object.keys(FILTER_LABELS) as DateFilter[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
               filter === f
-                ? "bg-brand-primary text-white"
+                ? "nav-item-emboss-brand text-white"
                 : "text-text-secondary hover:text-white hover:bg-bg-card"
             }`}
           >
-            {f === "hoje" ? "Hoje" : f === "amanha" ? "Amanhã" : "Encerrados"}
+            {FILTER_LABELS[f]}
           </button>
         ))}
+
+        {/* Contador */}
+        <span className="ml-auto text-[11px] text-text-muted self-center">
+          {loading ? "..." : `${filtered.length} jogos`}
+        </span>
       </div>
 
       {loading ? (
@@ -76,27 +113,46 @@ export function GameList() {
           <SkeletonGameList />
         </>
       ) : groups.length === 0 ? (
-        <div className="py-12 text-center text-text-muted text-sm">
-          Nenhum jogo encontrado.
+        <div className="py-16 text-center">
+          <p className="text-4xl mb-3">⚽</p>
+          <p className="text-text-secondary text-sm">Nenhum jogo encontrado para {FILTER_LABELS[filter].toLowerCase()}.</p>
         </div>
       ) : (
-        groups.map(({ league, games }) => (
-          <div key={league} className="bg-bg-card rounded-lg overflow-hidden mb-3 mx-3 mt-3">
-            <div className="flex items-center gap-2 px-4 py-2 bg-bg-card border-b border-border-subtle">
-              <LeagueBadge league={league} />
-              <span className="ml-auto text-[11px] text-text-muted">
-                {games.length} {games.length === 1 ? "jogo" : "jogos"}
-              </span>
+        <div className="px-3 pt-3 space-y-3">
+          {groups.map(({ league, leagueId, games }) => (
+            <div
+              key={leagueId}
+              className="overflow-hidden rounded-2xl"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+              }}
+            >
+              {/* Header da liga */}
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border-subtle"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <LeagueBadge league={league} />
+                <span className="ml-auto text-[11px] text-text-muted">
+                  {games.length} {games.length === 1 ? "jogo" : "jogos"}
+                </span>
+              </div>
+
+              {/* Jogos */}
+              {games.map((g) => (
+                <GameRow
+                  key={g.id}
+                  game={g}
+                  analysis={analyses[g.id]}
+                  logoMap={logoMap}
+                />
+              ))}
             </div>
-            {games.map((g) => (
-              <GameRow key={g.id} game={g} analysis={analyses[g.id]} />
-            ))}
-          </div>
-        ))
+          ))}
+        </div>
       )}
 
-      {/* Espaço para nav mobile */}
-      <div className="h-20 md:h-4" />
+      <div className="h-24 md:h-6" />
     </div>
   );
 }

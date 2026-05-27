@@ -10,12 +10,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // ---------------------------------------------------------------------------
-// Formatação de datas
+// Formatação de datas e horários
 // ---------------------------------------------------------------------------
 
+/** Horário local do usuário a partir de um datetime ISO UTC */
+export function formatLocalTime(datetime: string): string {
+  return new Date(datetime).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function formatGameTime(datetime: string): string {
-  const date = parseISO(datetime);
-  return format(date, "HH:mm", { locale: ptBR });
+  return formatLocalTime(datetime);
 }
 
 export function formatGameDate(datetime: string): string {
@@ -30,24 +37,40 @@ export function formatFullDate(datetime: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Filtro por data UTC (para separar hoje / amanhã no frontend)
+// ---------------------------------------------------------------------------
+
+export function getUTCDateString(offsetDays = 0): string {
+  return new Date(Date.now() + offsetDays * 86_400_000).toISOString().split("T")[0];
+}
+
+export function isGameToday(datetime: string): boolean {
+  return datetime.startsWith(getUTCDateString(0));
+}
+
+export function isGameTomorrow(datetime: string): boolean {
+  return datetime.startsWith(getUTCDateString(1));
+}
+
+// ---------------------------------------------------------------------------
+// Status do jogo
+// ---------------------------------------------------------------------------
+
+export function isLive(status: GameStatus): boolean {
+  return status === "STATUS_IN_PROGRESS";
+}
+
+export function isFinished(status: GameStatus): boolean {
+  return status === "STATUS_FINAL";
+}
+
+// ---------------------------------------------------------------------------
 // Odds
 // ---------------------------------------------------------------------------
 
 export function formatOdd(odd: number | null | undefined): string {
   if (odd == null) return "-";
   return odd.toFixed(2);
-}
-
-// ---------------------------------------------------------------------------
-// Status
-// ---------------------------------------------------------------------------
-
-export function isLive(status: GameStatus): boolean {
-  return status === "live";
-}
-
-export function isFinished(status: GameStatus): boolean {
-  return status === "finished";
 }
 
 // ---------------------------------------------------------------------------
