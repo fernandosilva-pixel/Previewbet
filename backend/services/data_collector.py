@@ -258,10 +258,11 @@ async def _fetch(league_id: str, date: str, client: httpx.AsyncClient) -> list[d
 
 
 # ---------------------------------------------------------------------------
-# Upsert Supabase
+# Upsert Supabase — síncrono (rodado em thread para não bloquear event loop)
 # ---------------------------------------------------------------------------
 
-def _upsert(rows: list[dict]) -> int:
+def _upsert_sync(rows: list[dict]) -> int:
+    """Upsert síncrono — SEMPRE chamar via asyncio.to_thread()."""
     if not rows or supabase is None:
         return 0
     try:
@@ -276,26 +277,36 @@ def _upsert(rows: list[dict]) -> int:
         return 0
 
 
+async def _upsert(rows: list[dict]) -> int:
+    """Wrapper async — roda o upsert em thread pool para não travar o event loop."""
+    if not rows:
+        return 0
+    return await asyncio.to_thread(_upsert_sync, rows)
+
+
 # ---------------------------------------------------------------------------
 # Jobs públicos
 # ---------------------------------------------------------------------------
 
 async def sync_today() -> int:
     """
-    Sincroniza jogos de HOJE em paralelo (rápido — ~3s para 124 ligas).
+    Sincroniza jogos de HOJE em paralelo (~3s para 124 ligas).
     Chamado a cada 3 minutos pelo scheduler.
     """
     date  = datetime.now(timezone.utc).strftime("%Y%m%d")
     total = 0
 
     async with httpx.AsyncClient() as client:
-        tasks = [_fetch(lg["id"], date, client) for lg in LEAGUES]
+        tasks   = [_fetch(lg["id"], date, client) for lg in LEAGUES]
         results = await asyncio.gather(*tasks)
 
+    # Agrupa tudo em um único upsert por data (menos chamadas ao Supabase)
+    all_rows = []
     for league, events in zip(LEAGUES, results):
-        rows = [r for e in events if (r := _parse_event(e, league))]
-        if rows:
-            total += _upsert(rows)
+        all_rows += [r for e in events if (r := _parse_event(e, league))]
+
+    if all_rows:
+        total = await _upsert(all_rows)
 
     print(f"[collector] sync_today: {total} jogos", flush=True)
     return total
@@ -315,12 +326,17 @@ async def sync_fixtures(days_ahead: int = 2) -> int:
             tasks   = [_fetch(lg["id"], date, client) for lg in LEAGUES]
             results = await asyncio.gather(*tasks)
 
+            # Um único upsert por data (não bloqueia o event loop)
+            day_rows = []
             for league, events in zip(LEAGUES, results):
-                rows = [r for e in events if (r := _parse_event(e, league))]
-                if rows:
-                    total += _upsert(rows)
+                day_rows += [r for e in events if (r := _parse_event(e, league))]
 
-    print(f"[collector] sync_fixtures ({days_ahead}d): {total} jogos", flush=True)
+            if day_rows:
+                count = await _upsert(day_rows)
+                total += count
+                print(f"[collector] {date}: {count} jogos salvos", flush=True)
+
+    print(f"[collector] sync_fixtures ({days_ahead}d): {total} jogos total", flush=True)
     return total
 
 
