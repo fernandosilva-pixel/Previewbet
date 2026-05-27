@@ -314,5 +314,185 @@ MOCK_ANALYSES = {
     },
 }
 
-# Para compatibilidade com outros arquivos que importam _now
-_now_iso = _now.isoformat()
+# ---------------------------------------------------------------------------
+# Stats mock
+# ---------------------------------------------------------------------------
+
+MOCK_STATS = [
+    {
+        "league": "Geral",
+        "total": 248,
+        "correct": 173,
+        "accuracy_pct": 69.8,
+        "by_confidence": {
+            "ALTA": {"total": 82, "correct": 68, "pct": 82.9},
+            "MEDIA": {"total": 110, "correct": 76, "pct": 69.1},
+            "BAIXA": {"total": 56, "correct": 29, "pct": 51.8},
+        },
+    },
+    {
+        "league": "Brasileirão Série A",
+        "total": 96,
+        "correct": 71,
+        "accuracy_pct": 74.0,
+        "by_confidence": {
+            "ALTA": {"total": 34, "correct": 30, "pct": 88.2},
+            "MEDIA": {"total": 42, "correct": 30, "pct": 71.4},
+            "BAIXA": {"total": 20, "correct": 11, "pct": 55.0},
+        },
+    },
+    {
+        "league": "Premier League",
+        "total": 52,
+        "correct": 36,
+        "accuracy_pct": 69.2,
+        "by_confidence": {
+            "ALTA": {"total": 18, "correct": 15, "pct": 83.3},
+            "MEDIA": {"total": 24, "correct": 16, "pct": 66.7},
+            "BAIXA": {"total": 10, "correct": 5, "pct": 50.0},
+        },
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Bingos mock
+# ---------------------------------------------------------------------------
+
+MOCK_BINGOS = [
+    {
+        "id": 1,
+        "name": "Combo Sábado Premium",
+        "category": "conservador",
+        "tier": "seguro",
+        "total_odd": 4.85,
+        "confidence_pct": 78,
+        "is_active": True,
+        "created_at": _now.isoformat(),
+        "selections": [
+            {
+                "home": "Flamengo",
+                "away": "Palmeiras",
+                "league": "Brasileirão Série A",
+                "datetime": _dt(0, 16, 0),
+                "market_label": "Flamengo Vence",
+                "odd": 2.10,
+                "confidence": "ALTA",
+                "sub_picks": [{"market_label": "Mais de 1.5 gols", "odd": 1.40}],
+            },
+            {
+                "home": "Manchester City",
+                "away": "Arsenal",
+                "league": "Premier League",
+                "datetime": _dt(0, 16, 0),
+                "market_label": "Manchester City Vence",
+                "odd": 1.85,
+                "confidence": "ALTA",
+                "sub_picks": [{"market_label": "Mais de 2.5 gols", "odd": 1.65}],
+            },
+        ],
+    },
+    {
+        "id": 2,
+        "name": "Super Gols Europeu",
+        "category": "moderado",
+        "tier": "moderado",
+        "total_odd": 9.20,
+        "confidence_pct": 62,
+        "is_active": True,
+        "created_at": _now.isoformat(),
+        "selections": [
+            {
+                "home": "Real Madrid",
+                "away": "Barcelona",
+                "league": "La Liga",
+                "datetime": _dt(0, 17, 0),
+                "market_label": "Ambas marcam",
+                "odd": 1.60,
+                "confidence": "ALTA",
+                "sub_picks": [{"market_label": "Mais de 2.5 gols", "odd": 1.55}],
+            },
+        ],
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Live alerts mock
+# ---------------------------------------------------------------------------
+
+MOCK_LIVE_ALERTS = [
+    {
+        "id": 1,
+        "game_id": "e_1001",
+        "league": "Brasileirão Série A",
+        "home": "Flamengo",
+        "away": "Palmeiras",
+        "home_score": 1,
+        "away_score": 0,
+        "clock": "67'",
+        "market": "Próximo gol - Casa",
+        "signal": "Flamengo domina com 54% de posse e criou 3 chances claras nos últimos 10 minutos.",
+        "confidence": "ALTA",
+        "triggered_at": _now.isoformat(),
+        "is_active": True,
+        "pressure": {
+            "possession": "54%",
+            "shots": "8",
+            "corners": "4",
+            "pressure_score": "8.2/10",
+            "green_condition": "Pressão alta sustentada",
+        },
+    },
+    {
+        "id": 2,
+        "game_id": "e_1002",
+        "league": "La Liga",
+        "home": "Real Madrid",
+        "away": "Barcelona",
+        "home_score": 2,
+        "away_score": 2,
+        "clock": "78'",
+        "market": "Mais um gol na partida",
+        "signal": "Real Madrid e Barcelona em ritmo intenso. Ambos buscam a virada.",
+        "confidence": "ALTA",
+        "triggered_at": _now.isoformat(),
+        "is_active": True,
+        "pressure": {
+            "possession": "48%/52%",
+            "shots": "11/9",
+            "corners": "6/5",
+            "pressure_score": "9.1/10",
+            "green_condition": "Alta intensidade bilateral",
+        },
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Planos de assinatura mock
+# ---------------------------------------------------------------------------
+
+MOCK_SUBSCRIPTION_PLANS = [
+    {
+        "id": 1,
+        "name": "Semanal",
+        "description": "Acesso completo por 7 dias",
+        "price_cents": 1990,
+        "interval": "weekly",
+        "is_active": True,
+    },
+    {
+        "id": 2,
+        "name": "Quinzenal",
+        "description": "Acesso completo por 15 dias",
+        "price_cents": 2990,
+        "interval": "biweekly",
+        "is_active": True,
+    },
+    {
+        "id": 3,
+        "name": "Mensal",
+        "description": "Acesso completo por 30 dias",
+        "price_cents": 4990,
+        "interval": "monthly",
+        "is_active": True,
+    },
+]
