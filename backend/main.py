@@ -1,11 +1,28 @@
 import os
+import sys
 from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import games, analysis, auth, bingos, subscription, stats
+# ---------------------------------------------------------------------------
+# Diagnóstico de startup — visível nos logs do Railway
+# ---------------------------------------------------------------------------
+_port = os.getenv("PORT", "8000")
+print(f"[startup] PORT={_port}", flush=True)
+print(f"[startup] Python {sys.version}", flush=True)
+print(f"[startup] CWD={os.getcwd()}", flush=True)
+
+# ---------------------------------------------------------------------------
+# Importar rotas (com captura de erros para diagnóstico)
+# ---------------------------------------------------------------------------
+try:
+    from routes import games, analysis, auth, bingos, subscription, stats
+    print("[startup] Todas as rotas importadas com sucesso", flush=True)
+except Exception as _import_err:
+    print(f"[startup] ERRO ao importar rotas: {_import_err}", flush=True)
+    raise
 
 
 # ---------------------------------------------------------------------------
@@ -41,13 +58,13 @@ manager = ConnectionManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: iniciar scheduler quando o banco estiver configurado
+    print("[lifespan] Startup OK", flush=True)
     yield
-    # Shutdown: cleanup
+    print("[lifespan] Shutdown", flush=True)
 
 
 app = FastAPI(
-    title="Oraculous Bet API",
+    title="Royaltips API",
     version="0.1.0",
     description="Plataforma de palpites de futebol gerados por IA",
     lifespan=lifespan,
@@ -56,6 +73,7 @@ app = FastAPI(
 # ALLOWED_ORIGINS aceita múltiplas origens separadas por vírgula
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
 _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+print(f"[startup] CORS origins: {_allowed_origins}", flush=True)
 
 app.add_middleware(
     CORSMiddleware,
@@ -79,7 +97,12 @@ app.include_router(stats.router, prefix="/api", tags=["stats"])
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "port": _port}
+
+
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "Royaltips API"}
 
 
 # ---------------------------------------------------------------------------
@@ -92,7 +115,17 @@ async def websocket_endpoint(ws: WebSocket):
     try:
         while True:
             data = await ws.receive_json()
-            # Echo de volta para confirmar recebimento (lógica real no live_monitor)
             await ws.send_json({"type": "ack", "received": data})
     except WebSocketDisconnect:
         manager.disconnect(ws)
+
+
+# ---------------------------------------------------------------------------
+# Entrypoint — usado pelo Railway via `python main.py`
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    print(f"[main] Iniciando uvicorn na porta {port}", flush=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

@@ -8,8 +8,14 @@ router = APIRouter()
 bearer = HTTPBearer(auto_error=False)
 
 
+def _require_supabase():
+    if supabase is None:
+        raise HTTPException(status_code=503, detail="Serviço de autenticação não configurado")
+
+
 @router.post("/auth/register", response_model=dict)
 async def register(body: RegisterIn):
+    _require_supabase()
     try:
         res = supabase.auth.sign_up({"email": body.email, "password": body.password})
         if res.user is None:
@@ -27,18 +33,20 @@ async def register(body: RegisterIn):
                 "permissions": {"jogos": False, "aovivo": False, "bingos": False, "segmentos": False},
             },
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/auth/login", response_model=dict)
 async def login(body: LoginIn):
+    _require_supabase()
     try:
         res = supabase.auth.sign_in_with_password({"email": body.email, "password": body.password})
         if res.user is None:
             raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-        # Verificar assinatura ativa
         sub = (
             supabase.table("user_subscriptions")
             .select("*, subscription_plans(*)")
@@ -68,12 +76,13 @@ async def login(body: LoginIn):
         }
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
 
 @router.get("/auth/me", response_model=dict)
 async def me(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
+    _require_supabase()
     if not credentials:
         raise HTTPException(status_code=401, detail="Token não informado")
     try:
