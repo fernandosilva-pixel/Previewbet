@@ -6,8 +6,13 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { GameRow } from "@/components/games/GameRow";
 import { LeagueBadge } from "@/components/ui/LeagueBadge";
-import { fetchGames } from "@/lib/api";
 import type { Game } from "@/lib/types";
+
+async function fetchLiveGames(): Promise<Game[]> {
+  const res = await fetch("/api/games/live", { cache: "no-store" });
+  if (!res.ok) throw new Error(`status ${res.status}`);
+  return res.json();
+}
 
 function groupByLeague(games: Game[]) {
   const map = new Map<string, { league: string; leagueId: string; games: Game[] }>();
@@ -26,8 +31,8 @@ export default function AoVivoPage() {
 
   const load = useCallback(async () => {
     try {
-      const all = await fetchGames();
-      setLiveGames(all.filter((g) => g.isLive));
+      const games = await fetchLiveGames();
+      setLiveGames(games);
       setLastUpdated(new Date());
     } catch {
       // mantém o último valor
