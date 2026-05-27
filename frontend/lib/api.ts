@@ -1,9 +1,14 @@
 import axios from "axios";
 import type { Game, Analysis, Bingo, AccuracyStats, LiveAlert, SubscriptionPlan } from "./types";
 
+/**
+ * Usa o proxy server-side do Next.js (/api/backend/**).
+ * O browser chama a mesma origem → sem CORS, sem NEXT_PUBLIC_API_URL.
+ * O proxy lê BACKEND_URL em runtime (server-side) e repassa para o FastAPI.
+ */
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
-  timeout: 10000,
+  baseURL: "/api/backend",
+  timeout: 12000,
 });
 
 // Injeta token JWT do Supabase nas requisições autenticadas

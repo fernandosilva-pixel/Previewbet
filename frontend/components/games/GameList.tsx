@@ -37,11 +37,13 @@ export function GameList() {
   const [logoMap, setLogoMap] = useState<Record<string, string>>({});
   const [analyses, setAnalyses] = useState<Record<string, Analysis>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<DateFilter>("hoje");
 
   // Busca todos os jogos UMA vez ao montar
   useEffect(() => {
     setLoading(true);
+    setError(null);
     Promise.all([fetchGames(), fetchLogoMap().catch(() => ({}))])
       .then(async ([games, logos]) => {
         setAllGames(games);
@@ -60,7 +62,10 @@ export function GameList() {
         );
         setAnalyses(analysisMap);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error("[GameList] fetchGames error:", err);
+        setError(err?.message ?? "Erro ao carregar jogos");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -112,6 +117,12 @@ export function GameList() {
           <SkeletonGameList />
           <SkeletonGameList />
         </>
+      ) : error ? (
+        <div className="py-16 text-center">
+          <p className="text-4xl mb-3">⚠️</p>
+          <p className="text-red-400 text-sm font-semibold mb-1">Erro ao carregar jogos</p>
+          <p className="text-text-muted text-xs font-mono">{error}</p>
+        </div>
       ) : groups.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-4xl mb-3">⚽</p>
