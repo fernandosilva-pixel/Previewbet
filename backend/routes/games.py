@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException
 
 from database import supabase
@@ -10,7 +12,6 @@ router = APIRouter()
 # Mapeamentos ESPN
 # ---------------------------------------------------------------------------
 
-# status do banco → status ESPN esperado pelo frontend
 _DB_TO_ESPN: dict[str, str] = {
     "scheduled":   "STATUS_SCHEDULED",
     "in_progress": "STATUS_IN_PROGRESS",
@@ -22,12 +23,10 @@ _DB_TO_ESPN: dict[str, str] = {
 
 
 def _row_to_game(row: dict) -> dict:
-    """Converte linha do Supabase no formato Game esperado pelo frontend."""
-    db_status  = row.get("status", "scheduled")
+    db_status   = row.get("status", "scheduled")
     espn_status = _DB_TO_ESPN.get(db_status, "STATUS_SCHEDULED")
-    is_live    = db_status == "in_progress"
-    is_final   = db_status == "final"
-
+    is_live     = db_status == "in_progress"
+    is_final    = db_status == "final"
     league_id   = row.get("source", "")
     league_short = _LEAGUE_SHORT.get(league_id, (row.get("league") or "")[:8].upper())
 
@@ -52,43 +51,75 @@ def _row_to_game(row: dict) -> dict:
     }
 
 
+def _fetch_games_from_supabase() -> list[dict] | None:
+    """Leitura síncrona — sempre chamar via asyncio.to_thread."""
+    try:
+        res = (
+            supabase.table("games")
+            .select("*")
+            .order("datetime", desc=False)
+            .limit(500)
+            .execute()
+        )
+        return res.data or []
+    except Exception as exc:
+        print(f"[games] Supabase read error: {exc}", flush=True)
+        return None
+
+
+def _fetch_game_from_supabase(game_id: str) -> dict | None:
+    try:
+        res = (
+            supabase.table("games")
+            .select("*")
+            .or_(f"external_id.eq.espn_{game_id},external_id.eq.{game_id}")
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            return res.data[0]
+        if game_id.isdigit():
+            res2 = (
+                supabase.table("games")
+                .select("*")
+                .eq("id", int(game_id))
+                .single()
+                .execute()
+            )
+            return res2.data
+    except Exception as exc:
+        print(f"[games] Supabase get_game error: {exc}", flush=True)
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Rotas
 # ---------------------------------------------------------------------------
 
 @router.get("/games/logos/teams", response_model=dict)
 async def get_logo_map():
-    """Mapa de logos locais por nome de time — usado como fallback no frontend."""
     return MOCK_LOGO_MAP
 
 
 @router.get("/games/", response_model=list[dict])
 @router.get("/games", response_model=list[dict])
 async def list_games():
-    """
-    Retorna TODOS os jogos.
-    Prioridade: Supabase → mock_data (fallback de desenvolvimento).
-    O filtro por data é feito no frontend.
-    """
     if supabase is not None:
         try:
-            res = (
-                supabase.table("games")
-                .select("*")
-                .order("datetime", desc=False)
-                .limit(500)
-                .execute()
+            # Roda em thread para não bloquear o event loop; timeout de 8s
+            data = await asyncio.wait_for(
+                asyncio.to_thread(_fetch_games_from_supabase),
+                timeout=8.0,
             )
-            if res.data:
-                games = [_row_to_game(r) for r in res.data]
-                return sorted(
-                    games,
-                    key=lambda g: (0 if g["isLive"] else 1, g["datetime"]),
-                )
+            if data:
+                games = [_row_to_game(r) for r in data]
+                return sorted(games, key=lambda g: (0 if g["isLive"] else 1, g["datetime"]))
+        except asyncio.TimeoutError:
+            print("[games] Supabase timeout (>8s), usando mock", flush=True)
         except Exception as exc:
-            print(f"[games] Supabase error, usando mock: {exc}", flush=True)
+            print(f"[games] erro inesperado: {exc}", flush=True)
 
-    # Fallback: mock data (desenvolvimento sem Supabase configurado)
+    # Fallback: mock data
     return sorted(MOCK_GAMES, key=lambda g: (0 if g["isLive"] else 1, g["datetime"]))
 
 
@@ -96,35 +127,17 @@ async def list_games():
 async def get_game(game_id: str):
     if supabase is not None:
         try:
-            # Tenta por id numérico ou por external_id
-            res = (
-                supabase.table("games")
-                .select("*")
-                .or_(
-                    f"external_id.eq.espn_{game_id},"
-                    f"external_id.eq.{game_id}"
-                )
-                .limit(1)
-                .execute()
+            row = await asyncio.wait_for(
+                asyncio.to_thread(_fetch_game_from_supabase, game_id),
+                timeout=8.0,
             )
-            if res.data:
-                return _row_to_game(res.data[0])
-
-            # Se não achou por external_id, tenta id numérico
-            if game_id.isdigit():
-                res2 = (
-                    supabase.table("games")
-                    .select("*")
-                    .eq("id", int(game_id))
-                    .single()
-                    .execute()
-                )
-                if res2.data:
-                    return _row_to_game(res2.data)
+            if row:
+                return _row_to_game(row)
+        except asyncio.TimeoutError:
+            print("[games] Supabase timeout get_game, usando mock", flush=True)
         except Exception as exc:
-            print(f"[games] get_game error: {exc}", flush=True)
+            print(f"[games] get_game erro: {exc}", flush=True)
 
-    # Fallback mock
     for g in MOCK_GAMES:
         if str(g["id"]) == game_id or g.get("espn_id") == game_id:
             return g

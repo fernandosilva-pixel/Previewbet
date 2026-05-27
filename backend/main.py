@@ -109,12 +109,30 @@ app.include_router(stats.router, prefix="/api", tags=["stats"])
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "port": _port}
+    from database import supabase as _sb
+    return {
+        "status": "ok",
+        "port": _port,
+        "supabase": _sb is not None,
+    }
 
 
 @app.get("/")
 async def root():
     return {"status": "ok", "service": "Royaltips API"}
+
+
+@app.post("/api/admin/sync")
+async def manual_sync():
+    """Endpoint de diagnóstico — dispara sync manual e retorna contagem."""
+    if not _scheduler_available:
+        return {"error": "scheduler não disponível"}
+    try:
+        from services.data_collector import sync_today
+        count = await sync_today()
+        return {"status": "ok", "jogos_sincronizados": count}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
 
 
 # ---------------------------------------------------------------------------

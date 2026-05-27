@@ -2,9 +2,9 @@
 APScheduler: agenda tarefas automáticas de coleta de dados.
 
 Cadência:
-  - sync_fixtures  → a cada 3 horas  (busca jogos dos próximos 2 dias)
-  - sync_today     → a cada 2 minutos (atualiza placares do dia)
-  - No startup     → sync imediato, sem esperar o primeiro ciclo
+  - sync_fixtures → a cada 3 horas
+  - sync_today    → a cada 3 minutos
+  - startup sync  → após 30s do boot (dá tempo do uvicorn estar pronto)
 """
 
 import asyncio
@@ -38,6 +38,13 @@ async def _job_today() -> None:
         print(f"[scheduler] today error: {exc}", flush=True)
 
 
+async def _delayed_startup_sync() -> None:
+    """Aguarda 30s para o uvicorn estar pronto antes do primeiro sync."""
+    await asyncio.sleep(30)
+    print("[scheduler] Iniciando sync de startup...", flush=True)
+    await _job_fixtures()
+
+
 # ---------------------------------------------------------------------------
 # Ciclo de vida
 # ---------------------------------------------------------------------------
@@ -57,10 +64,10 @@ def start() -> None:
         coalesce=True,
     )
 
-    # scores do dia a cada 2 minutos
+    # scores do dia a cada 3 minutos
     _scheduler.add_job(
         _job_today,
-        trigger=IntervalTrigger(minutes=2),
+        trigger=IntervalTrigger(minutes=3),
         id="today",
         replace_existing=True,
         max_instances=1,
@@ -69,10 +76,10 @@ def start() -> None:
 
     _scheduler.start()
     _started = True
-    print("[scheduler] Iniciado (fixtures/3h + today/2min)", flush=True)
+    print("[scheduler] Iniciado (fixtures/3h + today/3min, startup sync em 30s)", flush=True)
 
-    # sync imediato no startup (não espera o primeiro ciclo)
-    asyncio.create_task(_job_fixtures())
+    # sync inicial com delay — não trava o boot do uvicorn
+    asyncio.create_task(_delayed_startup_sync())
 
 
 def stop() -> None:
