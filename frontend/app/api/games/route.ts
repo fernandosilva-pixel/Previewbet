@@ -18,9 +18,18 @@ function getSupabase(): AnySupabase | null {
   return createClient(url, key) as AnySupabase;
 }
 
-function dateStr(offsetDays = 0) {
+/** Retorna "YYYYMMDD" no fuso de São Paulo — evita buscar o dia errado na ESPN. */
+function dateStr(offsetDays = 0): string {
   const d = new Date(Date.now() + offsetDays * 86_400_000);
-  return d.toISOString().split("T")[0].replace(/-/g, ""); // "20260527"
+  return d
+    .toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })
+    .replace(/-/g, "");
+}
+
+/** Retorna "YYYY-MM-DD" no fuso de São Paulo para filtros do Supabase. */
+function brIsoDate(offsetDays = 0): string {
+  const d = new Date(Date.now() + offsetDays * 86_400_000);
+  return d.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 }
 
 export async function GET() {
@@ -39,14 +48,22 @@ export async function GET() {
     }
   }
 
-  // --- lê do Supabase imediatamente ---
+  // --- lê do Supabase imediatamente (janela: ontem até depois de amanhã, fuso SP) ---
   let games: ReturnType<typeof rowToGame>[] = [];
   try {
+    // Filtramos por datetime usando os limites UTC do dia brasileiro.
+    // Brasil = UTC-3: o "dia de ontem em SP" começa às 03:00 UTC do dia anterior.
+    // Para ser seguro usamos ontem (-1) a depois de amanhã (+3) em SP.
+    const from = brIsoDate(-1); // "2026-05-27"
+    const to   = brIsoDate(3);  // "2026-05-31"
+
     const { data } = await supabase
       .from("games")
       .select("*")
+      .gte("datetime", from)      // datetime >= "2026-05-27"
+      .lt("datetime", to)         // datetime <  "2026-05-31"
       .order("datetime", { ascending: true })
-      .limit(500);
+      .limit(1000);
 
     games = (data ?? []).map(rowToGame).sort((a, b) =>
       (a.isLive ? 0 : 1) - (b.isLive ? 0 : 1) || a.datetime.localeCompare(b.datetime)
@@ -64,7 +81,7 @@ export async function GET() {
 /** Verifica staleness e sincroniza em background — não bloqueia a resposta HTTP */
 async function checkAndSync(supabase: AnySupabase) {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = brIsoDate(0); // "2026-05-28" no fuso de SP
     const { data: existing } = await supabase
       .from("games")
       .select("updated_at")

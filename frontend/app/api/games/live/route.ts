@@ -18,8 +18,11 @@ function getSupabase(): AnySupabase | null {
   return createClient(url, key) as AnySupabase;
 }
 
-function todayStr() {
-  return new Date().toISOString().split("T")[0].replace(/-/g, ""); // "20260527"
+/** "YYYYMMDD" no fuso de São Paulo (UTC-3) — evita buscar o dia errado na ESPN. */
+function todayStr(): string {
+  return new Date()
+    .toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })
+    .replace(/-/g, "");
 }
 
 export async function GET() {

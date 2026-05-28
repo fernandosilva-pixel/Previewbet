@@ -3,10 +3,28 @@
 // ---------------------------------------------------------------------------
 
 export type GameStatus =
+  // Agendado
   | "STATUS_SCHEDULED"
+  | "STATUS_DELAYED"
+  | "STATUS_RAIN_DELAY"
+  // Em andamento
   | "STATUS_IN_PROGRESS"
+  | "STATUS_FIRST_HALF"
+  | "STATUS_SECOND_HALF"
+  | "STATUS_HALFTIME"
+  | "STATUS_EXTRA_TIME"
+  | "STATUS_ET_HALFTIME"
+  | "STATUS_PENALTIES"
+  | "STATUS_OVERTIME"
+  // Encerrado
   | "STATUS_FINAL"
-  | "STATUS_POSTPONED";
+  | "STATUS_FULL_TIME"
+  | "STATUS_FULL_PEN"
+  | "STATUS_ABANDONED"
+  // Outros
+  | "STATUS_POSTPONED"
+  | "STATUS_CANCELLED"
+  | "STATUS_SUSPENDED";
 
 export interface Game {
   id: string;            // ex: "e_401865466"

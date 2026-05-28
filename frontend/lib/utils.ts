@@ -37,31 +37,55 @@ export function formatFullDate(datetime: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Filtro por data UTC (para separar hoje / amanhã no frontend)
+// Filtro por data — usa fuso horário local do browser (date-fns)
+// Para o usuário brasileiro (UTC-3) funciona corretamente.
 // ---------------------------------------------------------------------------
 
-export function getUTCDateString(offsetDays = 0): string {
-  return new Date(Date.now() + offsetDays * 86_400_000).toISOString().split("T")[0];
-}
-
 export function isGameToday(datetime: string): boolean {
-  return datetime.startsWith(getUTCDateString(0));
+  return isToday(parseISO(datetime));
 }
 
 export function isGameTomorrow(datetime: string): boolean {
-  return datetime.startsWith(getUTCDateString(1));
+  return isTomorrow(parseISO(datetime));
+}
+
+/** Retorna "YYYYMMDD" no fuso horário de São Paulo (America/Sao_Paulo). */
+export function brDateStr(offsetDays = 0): string {
+  const d = new Date(Date.now() + offsetDays * 86_400_000);
+  // en-CA formata como "YYYY-MM-DD", que é exatamente o que precisamos
+  return d
+    .toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })
+    .replace(/-/g, "");
 }
 
 // ---------------------------------------------------------------------------
 // Status do jogo
 // ---------------------------------------------------------------------------
 
+const LIVE_STATUSES: GameStatus[] = [
+  "STATUS_IN_PROGRESS",
+  "STATUS_FIRST_HALF",
+  "STATUS_SECOND_HALF",
+  "STATUS_HALFTIME",
+  "STATUS_EXTRA_TIME",
+  "STATUS_ET_HALFTIME",
+  "STATUS_PENALTIES",
+  "STATUS_OVERTIME",
+];
+
+const FINAL_STATUSES: GameStatus[] = [
+  "STATUS_FINAL",
+  "STATUS_FULL_TIME",
+  "STATUS_FULL_PEN",
+  "STATUS_ABANDONED",
+];
+
 export function isLive(status: GameStatus): boolean {
-  return status === "STATUS_IN_PROGRESS";
+  return LIVE_STATUSES.includes(status);
 }
 
 export function isFinished(status: GameStatus): boolean {
-  return status === "STATUS_FINAL";
+  return FINAL_STATUSES.includes(status);
 }
 
 // ---------------------------------------------------------------------------
